@@ -29,10 +29,11 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
   const toasterRef = useRef<ToasterRef>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [step, setStep] = useState<'platform' | 'provider' | 'type' | 'authorize'>('platform');
+  const [step, setStep] = useState<'platform' | 'provider' | 'type' | 'method' | 'authorize'>('platform');
   const [platform, setPlatform] = useState<'antigravity' | 'kiro' | ''>('');
   const [provider, setProvider] = useState<'Google' | 'Github' | ''>(''); // Kiro OAuth提供商
   const [accountType, setAccountType] = useState<0 | 1>(0); // 0=专属, 1=共享
+  const [loginMethod, setLoginMethod] = useState<'antihook' | 'manual' | ''>(''); // Antigravity 登录方式
   const [oauthUrl, setOauthUrl] = useState('');
   const [oauthState, setOauthState] = useState(''); // Kiro OAuth state
   const [callbackUrl, setCallbackUrl] = useState('');
@@ -101,23 +102,58 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
       }
       setStep('type');
     } else if (step === 'type') {
-      try {
-        if (platform === 'kiro') {
-          // Kiro账号使用新的API
+      // Antigravity 账号需要选择登录方式
+      if (platform === 'antigravity') {
+        setStep('method');
+      } else {
+        // Kiro 账号直接进入授权
+        try {
           const result = await getKiroOAuthAuthorizeUrl(provider as 'Google' | 'Github', accountType);
           setOauthUrl(result.data.auth_url);
-          setOauthState(result.data.state); // 保存state用于轮询
-          setCountdown(result.data.expires_in); // 设置倒计时
-          setIsWaitingAuth(true); // 开始等待授权
-          // 立即开始倒计时
+          setOauthState(result.data.state);
+          setCountdown(result.data.expires_in);
+          setIsWaitingAuth(true);
           startCountdownTimer(result.data.expires_in);
-          // 开始轮询授权状态
           startPollingOAuthStatus(result.data.state);
-        } else {
-          // Antigravity账号使用原有API
-          const { auth_url } = await getOAuthAuthorizeUrl(accountType);
-          setOauthUrl(auth_url);
+          setStep('authorize');
+        } catch (err) {
+          toasterRef.current?.show({
+            title: '获取失败',
+            message: err instanceof Error ? err.message : '获取授权链接失败',
+            variant: 'error',
+            position: 'top-right',
+          });
+          throw err;
         }
+      }
+    } else if (step === 'method') {
+      if (!loginMethod) {
+        toasterRef.current?.show({
+          title: '选择登录方式',
+          message: '请选择一种登录方式',
+          variant: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+      
+      // 如果选择 Antihook 登录，直接拉起 Antihook，弹出提示并关闭 Drawer
+      if (loginMethod === 'antihook') {
+        handleOpenAntihook();
+        toasterRef.current?.show({
+          title: '请在 Antihook 中继续操作',
+          message: '授权成功后账号将自动添加到您的账号列表',
+          variant: 'success',
+          position: 'top-right',
+        });
+        handleClose();
+        return;
+      }
+      
+      // 手动回调才需要获取授权链接并进入下一页
+      try {
+        const { auth_url } = await getOAuthAuthorizeUrl(accountType);
+        setOauthUrl(auth_url);
         setStep('authorize');
       } catch (err) {
         toasterRef.current?.show({
@@ -140,8 +176,15 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
       } else {
         setStep('platform');
       }
-    } else if (step === 'authorize') {
+    } else if (step === 'method') {
       setStep('type');
+      setLoginMethod('');
+    } else if (step === 'authorize') {
+      if (platform === 'antigravity') {
+        setStep('method');
+      } else {
+        setStep('type');
+      }
       setOauthUrl('');
       setCallbackUrl('');
     }
@@ -314,12 +357,29 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
     setPlatform('');
     setProvider('');
     setAccountType(0);
+    setLoginMethod('');
     setOauthUrl('');
     setOauthState('');
     setCallbackUrl('');
     setIsCheckingBeta(true);
     setCountdown(600);
     setIsWaitingAuth(false);
+  };
+
+  // 获取 Antihook 登录链接
+  const getAntihookUrl = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (!token) return '';
+    // URL 格式: anti://antigravity?identity=<token>&is_shared=<0|1>
+    return `anti://antigravity?identity=${encodeURIComponent(token)}&is_shared=${accountType}`;
+  };
+
+  // 打开 Antihook 登录
+  const handleOpenAntihook = () => {
+    const antihookUrl = getAntihookUrl();
+    if (antihookUrl) {
+      window.location.href = antihookUrl;
+    }
   };
 
   const handleClose = () => {
@@ -401,12 +461,12 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
                   />
                   <img
                     src="/antigravity-logo.png"
-                    alt="狗狗反重力"
+                    alt="Antigravity"
                     className="w-10 h-10 rounded-lg"
                   />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">狗狗反重力</h3>
+                      <h3 className="font-semibold">Antigravity</h3>
                       <Badge variant="secondary">可用</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -540,7 +600,7 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
           {step === 'type' && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                选择 {platform === 'antigravity' ? '狗狗反重力' : 'Kiro'} 账号类型
+                选择 {platform === 'antigravity' ? 'Antigravity' : 'Kiro'} 账号类型
               </p>
 
               <div className="space-y-3">
@@ -610,7 +670,74 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
             </div>
           )}
 
-          {/* 步骤 4: OAuth 授权 */}
+          {/* 步骤 4: 选择登录方式 (仅Antigravity) */}
+          {step === 'method' && platform === 'antigravity' && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                选择登录方式
+              </p>
+
+              <div className="space-y-3">
+                {/* Antihook 登录 */}
+                <label
+                  className={cn(
+                    "flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors",
+                    loginMethod === 'antihook' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="loginMethod"
+                    value="antihook"
+                    checked={loginMethod === 'antihook'}
+                    onChange={() => setLoginMethod('antihook')}
+                    className="w-4 h-4 mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">通过 Antihook 登录</h3>
+                    </div>
+                    {loginMethod === 'antihook' && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+                        请确保已安装并运行{' '}
+                        <a
+                          href="https://github.com/AntiHub-Project/AntiHook/releases"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-yellow-700 dark:hover:text-yellow-300"
+                        >
+                          AntiHook
+                        </a>
+                        {' '}客户端
+                      </p>
+                    )}
+                  </div>
+                </label>
+
+                {/* 手动提交回调 */}
+                <label
+                  className={cn(
+                    "flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors",
+                    loginMethod === 'manual' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="loginMethod"
+                    value="manual"
+                    checked={loginMethod === 'manual'}
+                    onChange={() => setLoginMethod('manual')}
+                    className="w-4 h-4 mt-1"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold">手动提交回调</h3>
+                  </div>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* 步骤 5: OAuth 授权 */}
           {step === 'authorize' && (
             <div className="space-y-6">
               {platform === 'kiro' ? (
@@ -684,7 +811,7 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
                   )}
                 </>
               ) : (
-                // Antigravity账号 - 显示回调地址输入
+                // Antigravity账号 - 手动提交回调
                 <>
                   <div className="space-y-3">
                     <Label className="text-base font-semibold">账号授权</Label>
@@ -776,6 +903,14 @@ export function AddAccountDrawer({ open, onOpenChange, onSuccess }: AddAccountDr
                 完成添加
               </StatefulButton>
             )
+          ) : step === 'method' ? (
+            <Button
+              onClick={handleContinue}
+              disabled={!loginMethod}
+              className="flex-1 cursor-pointer"
+            >
+              继续
+            </Button>
           ) : (
             <Button
               onClick={handleContinue}

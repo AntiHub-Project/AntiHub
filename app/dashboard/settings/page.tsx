@@ -84,14 +84,14 @@ export default function SettingsPage() {
       setPreferShared(newPreference);
       toasterRef.current?.show({
         title: '更新成功',
-        message: '账号优先级已更新',
+        message: '已保存账户首选项配置',
         variant: 'success',
         position: 'top-right',
       });
     } catch (err) {
       toasterRef.current?.show({
         title: '更新失败',
-        message: err instanceof Error ? err.message : '更新优先级失败',
+        message: err instanceof Error ? err.message : '更新账户首选项失败',
         variant: 'error',
         position: 'top-right',
       });
@@ -110,7 +110,7 @@ export default function SettingsPage() {
     if (!keyName.trim()) {
       toasterRef.current?.show({
         title: '输入错误',
-        message: '请输入API Key名称',
+        message: '请输入API密钥名称',
         variant: 'warning',
         position: 'top-right',
       });
@@ -130,7 +130,7 @@ export default function SettingsPage() {
     } catch (err) {
       toasterRef.current?.show({
         title: '生成失败',
-        message: err instanceof Error ? err.message : '生成 API Key 失败',
+        message: err instanceof Error ? err.message : '生成API密钥失败',
         variant: 'error',
         position: 'top-right',
       });
@@ -146,7 +146,7 @@ export default function SettingsPage() {
   };
 
   const handleDeleteKey = async (keyId: number) => {
-    if (!confirm('确定要删除此 API Key 吗？删除后将无法恢复，所有使用此密钥的应用将无法访问 AI 资源。')) {
+    if (!confirm('确定要删除此API密钥吗？删除后将无法恢复，所有使用此密钥的应用将无法访问 AI 资源。')) {
       return;
     }
 
@@ -156,7 +156,7 @@ export default function SettingsPage() {
       await deleteAPIKey(keyId);
       toasterRef.current?.show({
         title: '删除成功',
-        message: 'API Key 已删除',
+        message: 'API密钥已删除',
         variant: 'success',
         position: 'top-right',
       });
@@ -165,7 +165,7 @@ export default function SettingsPage() {
     } catch (err) {
       toasterRef.current?.show({
         title: '删除失败',
-        message: err instanceof Error ? err.message : '删除 API Key 失败',
+        message: err instanceof Error ? err.message : '删除API密钥失败',
         variant: 'error',
         position: 'top-right',
       });
@@ -178,7 +178,7 @@ export default function SettingsPage() {
     navigator.clipboard.writeText(key);
     toasterRef.current?.show({
       title: '复制成功',
-      message: 'API Key 已复制到剪贴板',
+      message: 'API密钥已复制到剪贴板',
       variant: 'success',
       position: 'top-right',
     });
@@ -214,7 +214,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-1.5">
                 <CardTitle className="flex items-center gap-2">
-                  API Key 管理
+                  API密钥管理
                 </CardTitle>
               </div>
               <Button
@@ -231,7 +231,7 @@ export default function SettingsPage() {
             {/* API Keys 列表 */}
             {apiKeys.length > 0 ? (
               <div className="space-y-3">
-                <Label className="text-sm font-medium">我的 API Keys ({apiKeys.length})</Label>
+                <Label className="text-sm font-medium">当前已创建{apiKeys.length}个密钥</Label>
                 <div className="border rounded-lg overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
                   <table className="w-full">
                     <thead>
@@ -298,7 +298,7 @@ export default function SettingsPage() {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">暂无 API Key</p>
+                <p className="text-sm">暂无API密钥</p>
               </div>
             )}
           </CardContent>
@@ -372,12 +372,12 @@ export default function SettingsPage() {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              API 端点
+              终结点
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Label className="text-sm font-medium">端点地址</Label>
+              <Label className="text-sm font-medium">默认终结点</Label>
               <div className="flex gap-2">
                 <Input
                   value={apiEndpoint}
@@ -399,7 +399,7 @@ export default function SettingsPage() {
                 <IconAlertTriangle className="size-5 text-yellow-500 shrink-0 mt-0.5" />
                 <div className="space-y-2 text-sm">
                   <p className="font-medium text-yellow-500">温馨提示</p>
-                  <p className="font-sm text-muted-foreground">你必须提供有效的 API Key 才能访问此端点。要获取模型列表，你的账户内必须具有有效的专属账号或共享账号配额。要进行对话，请使用OpenAI格式。</p>
+                  <p className="font-sm text-muted-foreground">你必须提供有效的API密钥才能访问此终结点。要获取模型列表，你的账户内必须具有有效的专属账号或共享账号配额。我们支持OpenAI格式或Anthropic格式的消息。</p>
                 </div>
               </div>
             </div>
@@ -411,7 +411,7 @@ export default function SettingsPage() {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>创建 API Key</DialogTitle>
+            <DialogTitle>创建API密钥</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -419,7 +419,7 @@ export default function SettingsPage() {
               <Label htmlFor="key-name">名称</Label>
               <Input
                 id="key-name"
-                placeholder="输入API Key名称"
+                placeholder="输入API密钥名称"
                 value={keyName}
                 onChange={(e) => setKeyName(e.target.value)}
                 maxLength={50}
@@ -450,7 +450,7 @@ export default function SettingsPage() {
                     <Badge variant="secondary">默认</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    使用反重力账号配额
+                    使用Antigravity账号配额
                   </p>
                 </div>
               </label>
@@ -527,7 +527,7 @@ export default function SettingsPage() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>API Key</Label>
+              <Label>API密钥</Label>
               <div className="flex gap-2">
                 <Input
                   value={showApiKey ? (newApiKey || '') : maskApiKey(newApiKey || '')}

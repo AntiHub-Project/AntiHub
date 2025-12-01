@@ -5,6 +5,7 @@ import {
   getAccounts,
   deleteAccount,
   updateAccountStatus,
+  updateAccountName,
   getAccountQuotas,
   updateQuotaStatus,
   getKiroAccounts,
@@ -46,7 +47,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { IconCirclePlusFilled, IconDotsVertical, IconRefresh, IconTrash, IconToggleLeft, IconToggleRight, IconExternalLink, IconChartBar, IconChevronDown, IconEdit } from '@tabler/icons-react';
+import { IconCirclePlusFilled, IconDotsVertical, IconRefresh, IconTrash, IconToggleLeft, IconToggleRight, IconExternalLink, IconChartBar, IconChevronDown, IconEdit, IconAlertTriangle } from '@tabler/icons-react';
 import {
   Select,
   SelectContent,
@@ -82,6 +83,12 @@ export default function AccountsPage() {
   const [renamingAccount, setRenamingAccount] = useState<KiroAccount | null>(null);
   const [newAccountName, setNewAccountName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
+
+  // 重命名 Antigravity 账号 Dialog 状态
+  const [isAntigravityRenameDialogOpen, setIsAntigravityRenameDialogOpen] = useState(false);
+  const [renamingAntigravityAccount, setRenamingAntigravityAccount] = useState<Account | null>(null);
+  const [newAntigravityAccountName, setNewAntigravityAccountName] = useState('');
+  const [isRenamingAntigravity, setIsRenamingAntigravity] = useState(false);
 
   // Kiro 账号详情 Dialog 状态
   const [isKiroDetailDialogOpen, setIsKiroDetailDialogOpen] = useState(false);
@@ -195,7 +202,7 @@ export default function AccountsPage() {
   };
 
   const handleDelete = async (cookieId: string) => {
-    if (!confirm('确定要删除这个反重力账号吗?')) return;
+    if (!confirm('确定要删除这个Antigravity账号吗?')) return;
 
     try {
       await deleteAccount(cookieId);
@@ -267,6 +274,52 @@ export default function AccountsPage() {
     setRenamingAccount(account);
     setNewAccountName(account.account_name || account.email || '');
     setIsRenameDialogOpen(true);
+  };
+
+  const handleRenameAntigravity = (account: Account) => {
+    setRenamingAntigravityAccount(account);
+    setNewAntigravityAccountName(account.name || '');
+    setIsAntigravityRenameDialogOpen(true);
+  };
+
+  const handleSubmitAntigravityRename = async () => {
+    if (!renamingAntigravityAccount) return;
+
+    if (!newAntigravityAccountName.trim()) {
+      toasterRef.current?.show({
+        title: '输入错误',
+        message: '账号名称不能为空',
+        variant: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
+
+    setIsRenamingAntigravity(true);
+    try {
+      await updateAccountName(renamingAntigravityAccount.cookie_id, newAntigravityAccountName.trim());
+      setAccounts(accounts.map(a =>
+        a.cookie_id === renamingAntigravityAccount.cookie_id
+          ? { ...a, name: newAntigravityAccountName.trim() }
+          : a
+      ));
+      setIsAntigravityRenameDialogOpen(false);
+      toasterRef.current?.show({
+        title: '重命名成功',
+        message: '账号名称已更新',
+        variant: 'success',
+        position: 'top-right',
+      });
+    } catch (err) {
+      toasterRef.current?.show({
+        title: '重命名失败',
+        message: err instanceof Error ? err.message : '更新账号名称失败',
+        variant: 'error',
+        position: 'top-right',
+      });
+    } finally {
+      setIsRenamingAntigravity(false);
+    }
   };
 
   const handleSubmitRename = async () => {
@@ -440,7 +493,7 @@ export default function AccountsPage() {
                     {activeTab === 'antigravity' ? (
                       <span className="flex items-center gap-2">
                         <img src="/antigravity-logo.png" alt="" className="size-4 rounded" />
-                        反重力
+                        Antigravity
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
@@ -457,7 +510,7 @@ export default function AccountsPage() {
                   <SelectItem value="antigravity">
                     <span className="flex items-center gap-2">
                       <img src="/antigravity-logo.png" alt="" className="size-4 rounded" />
-                      反重力
+                      Antigravity
                     </span>
                   </SelectItem>
                   <SelectItem value="kiro">
@@ -474,7 +527,7 @@ export default function AccountsPage() {
             )}
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleRefresh}
               disabled={isRefreshing}
             >
@@ -485,7 +538,7 @@ export default function AccountsPage() {
               )}
               <span className="ml-2">刷新</span>
             </Button>
-            <Button size="sm" onClick={handleAddAccount}>
+            <Button size="default" onClick={handleAddAccount}>
               <IconCirclePlusFilled className="size-4" />
               <span className="ml-2">添加账号</span>
             </Button>
@@ -498,7 +551,7 @@ export default function AccountsPage() {
         {activeTab === 'antigravity' && (
           <Card>
             <CardHeader className="text-left">
-              <CardTitle className="text-left">反重力账号</CardTitle>
+              <CardTitle className="text-left">Antigravity账号</CardTitle>
               <CardDescription className="text-left">
                 共 {accounts.length} 个账号
               </CardDescription>
@@ -506,88 +559,104 @@ export default function AccountsPage() {
             <CardContent>
               {accounts.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  <p className="text-lg mb-2">暂无反重力账号</p>
+                  <p className="text-lg mb-2">暂无Antigravity账号</p>
                   <p className="text-sm">点击"添加账号"按钮添加您的第一个账号</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="min-w-[200px]">账号 ID</TableHead>
-                        <TableHead className="min-w-[80px]">类型</TableHead>
-                        <TableHead className="min-w-[80px]">状态</TableHead>
-                        <TableHead className="min-w-[100px]">添加时间</TableHead>
-                        <TableHead className="min-w-[100px]">最后使用</TableHead>
-                        <TableHead className="text-right min-w-[80px]">操作</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {accounts.map((account) => (
-                        <TableRow key={account.cookie_id}>
-                          <TableCell className="font-mono text-sm">
-                            <div className="max-w-[200px] truncate" title={account.cookie_id}>
-                              {account.cookie_id}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={account.is_shared === 1 ? 'default' : 'secondary'} className="whitespace-nowrap">
-                              {account.is_shared === 1 ? '共享' : '专属'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={account.status === 1 ? 'default' : 'outline'} className="whitespace-nowrap">
-                              {account.status === 1 ? '启用' : '禁用'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                            {new Date(account.created_at).toLocaleDateString('zh-CN')}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                            {account.last_used_at
-                              ? new Date(account.last_used_at).toLocaleDateString('zh-CN')
-                              : '从未使用'
-                            }
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <IconDotsVertical className="size-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewQuotas(account)}>
-                                  <IconChartBar className="size-4 mr-2" />
-                                  查看配额
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleToggleStatus(account)}>
-                                  {account.status === 1 ? (
-                                    <>
-                                      <IconToggleLeft className="size-4 mr-2" />
-                                      禁用
-                                    </>
-                                  ) : (
-                                    <>
-                                      <IconToggleRight className="size-4 mr-2" />
-                                      启用
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDelete(account.cookie_id)}
-                                  className="text-red-600"
-                                >
-                                  <IconTrash className="size-4 mr-2" />
-                                  删除
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[200px]">账号 ID</TableHead>
+                          <TableHead className="min-w-[120px]">账号名称</TableHead>
+                          <TableHead className="min-w-[80px]">类型</TableHead>
+                          <TableHead className="min-w-[80px]">状态</TableHead>
+                          <TableHead className="min-w-[100px]">添加时间</TableHead>
+                          <TableHead className="min-w-[100px]">最后使用</TableHead>
+                          <TableHead className="text-right min-w-[80px]">操作</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {accounts.map((account) => (
+                          <TableRow key={account.cookie_id}>
+                            <TableCell className="font-mono text-sm">
+                              <div className="max-w-[200px] truncate" title={account.cookie_id}>
+                                {account.cookie_id}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span>{account.name || '未命名'}</span>
+                                {account.need_refresh && (
+                                  <Badge variant="outline" className="text-yellow-600 border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20">
+                                    <IconAlertTriangle className="size-3 mr-1" />
+                                    需要重新登录
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={account.is_shared === 1 ? 'default' : 'secondary'} className="whitespace-nowrap">
+                                {account.is_shared === 1 ? '共享' : '专属'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={account.status === 1 ? 'default' : 'outline'} className="whitespace-nowrap">
+                                {account.status === 1 ? '启用' : '禁用'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              {new Date(account.created_at).toLocaleDateString('zh-CN')}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              {account.last_used_at
+                                ? new Date(account.last_used_at).toLocaleDateString('zh-CN')
+                                : '从未使用'
+                              }
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <IconDotsVertical className="size-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleViewQuotas(account)}>
+                                    <IconChartBar className="size-4 mr-2" />
+                                    查看配额
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleRenameAntigravity(account)}>
+                                    <IconEdit className="size-4 mr-2" />
+                                    重命名
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleToggleStatus(account)}>
+                                    {account.status === 1 ? (
+                                      <>
+                                        <IconToggleLeft className="size-4 mr-2" />
+                                        禁用
+                                      </>
+                                    ) : (
+                                      <>
+                                        <IconToggleRight className="size-4 mr-2" />
+                                        启用
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDelete(account.cookie_id)}
+                                    className="text-red-600"
+                                  >
+                                    <IconTrash className="size-4 mr-2" />
+                                    删除
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                 </div>
               )}
             </CardContent>
@@ -830,6 +899,56 @@ export default function AccountsPage() {
               disabled={isRenaming || !newAccountName.trim()}
             >
               {isRenaming ? (
+                <>
+                  <MorphingSquare className="size-4 mr-2" />
+                  保存中...
+                </>
+              ) : (
+                '保存'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 重命名 Antigravity 账号 Dialog */}
+      <Dialog open={isAntigravityRenameDialogOpen} onOpenChange={setIsAntigravityRenameDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>重命名账号</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="antigravity-account-name">新的账号名称</Label>
+              <Input
+                id="antigravity-account-name"
+                placeholder="输入账号名称"
+                value={newAntigravityAccountName}
+                onChange={(e) => setNewAntigravityAccountName(e.target.value)}
+                maxLength={50}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isRenamingAntigravity) {
+                    handleSubmitAntigravityRename();
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAntigravityRenameDialogOpen(false)}
+              disabled={isRenamingAntigravity}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleSubmitAntigravityRename}
+              disabled={isRenamingAntigravity || !newAntigravityAccountName.trim()}
+            >
+              {isRenamingAntigravity ? (
                 <>
                   <MorphingSquare className="size-4 mr-2" />
                   保存中...

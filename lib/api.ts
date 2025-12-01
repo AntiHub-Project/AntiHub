@@ -633,6 +633,7 @@ export interface Account {
   email?: string;
   status: number; // 0=禁用, 1=启用
   is_shared: number; // 0=专属, 1=共享
+  need_refresh?: boolean; // 是否需要重新登录
   created_at: string;
   updated_at: string;
   last_used_at?: string | null;
@@ -681,6 +682,20 @@ export async function updateAccountStatus(cookieId: string, status: number): Pro
     {
       method: 'PUT',
       body: JSON.stringify({ status }),
+    }
+  );
+  return result.data;
+}
+
+/**
+ * 更新账号名称
+ */
+export async function updateAccountName(cookieId: string, name: string): Promise<any> {
+  const result = await fetchWithAuth<{ success: boolean; data: any }>(
+    `${API_BASE_URL}/api/plugin-api/accounts/${cookieId}/name`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
     }
   );
   return result.data;

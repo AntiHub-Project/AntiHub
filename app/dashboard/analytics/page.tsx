@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
                   {activeTab === 'antigravity' ? (
                     <span className="flex items-center gap-2">
                       <img src="/antigravity-logo.png" alt="" className="size-4 rounded" />
-                      反重力
+                      Antigravity
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export default function AnalyticsPage() {
                 <SelectItem value="antigravity">
                   <span className="flex items-center gap-2">
                     <img src="/antigravity-logo.png" alt="" className="size-4 rounded" />
-                    反重力
+                    Antigravity
                   </span>
                 </SelectItem>
                 <SelectItem value="kiro">
