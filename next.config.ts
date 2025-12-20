@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Docker 多阶段构建需要
+  output: "standalone",
 };
 
 export default nextConfig;
