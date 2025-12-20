@@ -7,4 +7,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      # 后端 API 地址（也是 OpenAI 兼容 API 端点）
+      - NEXT_PUBLIC_API_URL=http://localhost:8008
+      # 前端应用地址（生产环境必须配置为实际域名）
+      - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
     restart: unless-stopped
