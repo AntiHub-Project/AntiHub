@@ -1,0 +1,18 @@
+# 本地开发构建
+FROM node:20-alpine
+
+# 安装 pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# 依赖安装 (不锁版本，方便热更新)
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+# 复制源代码
+COPY . .
+
+EXPOSE 3000
+
+CMD ["pnpm", "dev"]

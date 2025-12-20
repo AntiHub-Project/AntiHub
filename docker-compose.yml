@@ -1,0 +1,10 @@
+# 从 GitHub Container Registry 拉取镜像部署
+services:
+  app:
+    image: ghcr.io/${GITHUB_USER:-$(gh repo view --json owner -q .owner.login)}/antihub:latest
+    container_name: antihub
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
