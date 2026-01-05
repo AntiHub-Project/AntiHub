@@ -40,3 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .kilocode
+
+# Docs
+Docs/
+
+# AI
+.claude/
+.gemini/
+.codex/
+.cursor/
