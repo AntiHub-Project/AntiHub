@@ -1,0 +1,42 @@
+$ lint-staged
+[STARTED] Backing up original state...
+[COMPLETED] Backed up original state in git stash (8d2befb)
+[STARTED] Hiding unstaged changes to partially staged files...
+[COMPLETED] Hiding unstaged changes to partially staged files...
+[STARTED] Running tasks for staged files...
+[STARTED] .lintstagedrc.js — 140 files
+[STARTED] *.{js,ts,mjs,cjs,json,tsx,css,less,scss,vue,html} — 129 files
+[STARTED] *.{js,ts,jsx,tsx,vue} — 123 files
+[STARTED] *.{css,less,scss} — 1 file
+[STARTED] cspell lint --no-must-find-files --cache
+[STARTED] prettier --write
+[STARTED] prettier --write
+[COMPLETED] prettier --write
+[COMPLETED] *.{css,less,scss} — 1 file
+[COMPLETED] cspell lint --no-must-find-files --cache
+[COMPLETED] *.{js,ts,mjs,cjs,json,tsx,css,less,scss,vue,html} — 129 files
+[COMPLETED] prettier --write
+[STARTED] eslint --fix
+[FAILED] eslint --fix [SIGINT]
+[FAILED] eslint --fix [SIGINT]
+[COMPLETED] Running tasks for staged files...
+[STARTED] Applying modifications from tasks...
+[SKIPPED] Skipped because of errors from tasks.
+[STARTED] Restoring unstaged changes...
+[SKIPPED] Skipped because of errors from tasks.
+[STARTED] Reverting to original state because of errors...
+[STARTED] Cleaning up temporary files...
+
+[SKIPPED]   ✖ lint-staged failed due to a git error.
+
+  ✖ lint-staged failed due to a git error.
+Any lost modifications can be restored from a git stash:
+
+  > git stash list --format="%h %s"
+  8d2befb On main: lint-staged automatic backup
+  > git apply --index 8d2befb
+
+
+✖ eslint --fix:
+Pages directory cannot be found at /home/kk/AntiHub/pages or /home/kk/AntiHub/src/pages. If using a custom path, please configure with the `no-html-link-for-pages` rule in your eslint config file.
+error: Script not found "commit"

@@ -1,0 +1,57 @@
+{
+  "import": ["@cspell/dict-lorem-ipsum/cspell-ext.json"],
+  "caseSensitive": false,
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html",
+    "css",
+    "bash",
+    "custom-dictionary"
+  ],
+  "words": [
+    "antihub",
+    "bunfig",
+    "lucide",
+    "clsx",
+    "tailwindcss",
+    "nextjs",
+    "repo"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "custom-dictionary",
+      "path": "./.cspell/custom-dictionary.txt"
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/lib/**",
+    "**/docs/**",
+    "**/vendor/**",
+    "**/public/**",
+    "**/static/**",
+    "**/out/**",
+    "**/tmp/**",
+    "**/.next/**",
+    "**/.turbo/**",
+    "**/bun.lock",
+    "**/bun.lockb",
+    "**/*.{png,jpg,jpeg,gif,svg,ico,pdf}",
+    "**/.local",
+    "**/.env*",
+    "**/tsconfig*.json",
+    "**/*.config.{js,cjs,ts,tsx}",
+    "package.json",
+    "bun.lock",
+    "bunfig.toml",
+    ".gitignore",
+    ".prettierignore",
+    "**/ai-elements/**",
+    "**/web/components/ui/**"
+  ],
+  "language": "en,zh"
+}
