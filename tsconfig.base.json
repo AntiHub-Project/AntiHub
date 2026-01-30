@@ -22,7 +22,7 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "exactoptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true,

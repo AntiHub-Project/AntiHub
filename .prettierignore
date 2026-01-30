@@ -1,0 +1,27 @@
+# build outputs
+dist
+build
+.next
+.turbo
+out
+
+# dependencies
+node_modules
+
+# cache files
+.local
+.cache
+.temp
+.DS_Store
+
+# lock files
+bun.lock
+bun.lockb
+
+# static assets
+public
+*.min.js
+*.min.css
+
+# environment configuration
+.env*

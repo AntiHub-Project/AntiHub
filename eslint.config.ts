@@ -24,6 +24,7 @@ export default defineConfig(
     "**/*.config.mts",
     "**/*.config.ts",
     "**/*.config.js",
+    "**/scripts/**",
   ]),
 
   js.configs.recommended,

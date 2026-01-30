@@ -8,12 +8,13 @@ First, create your own .env file based on the provided .env.example and fill in 
 cp .env.example .env
 ```
 
-Then, install the packages required using `pnpm` and start your development server:
+Then, install the packages required using `bun` and start your development server:
 
 ```bash
-pnpm install
+cd ../../..
+bun install
 
-pnpm run dev
+bun --cwd apps/frontend/web run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

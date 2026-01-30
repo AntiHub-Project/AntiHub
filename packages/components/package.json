@@ -1,0 +1,28 @@
+{
+  "name": "@antihub/components",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "peerDependencies": {
+    "next": ">=16",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "scripts": {
+    "test": "bun test --dom \"**/__tests__/**/*.{test,spec}.{ts,tsx}\""
+  }
+}
